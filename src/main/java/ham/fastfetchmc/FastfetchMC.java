@@ -29,14 +29,15 @@ public class FastfetchMC implements ModInitializer {
 		if (Files.notExists(configPath)) {
 			generateConfigFile(configPath);
 		}
-		//
+		// Makes the fastfetch command:
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(CommandManager.literal("fastfetch").executes(context -> {
-				LOGGER.info("Path: {}", configPath.toString());
+				LOGGER.info("Fastfetch config path: {}", configPath.toString());
+				// Executes the fastfetch command:
 				String[] command = {"fastfetch", "-c", configPath.toString()};
 				String message = executeShellCommand(command);
 
-
+				// Prints the message to chat:
 				context.getSource().sendFeedback(() -> Text.literal(message), false);
 				return 1;
 			}));
