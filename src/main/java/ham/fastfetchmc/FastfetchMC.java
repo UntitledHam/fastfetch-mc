@@ -16,26 +16,22 @@ import java.util.stream.Collectors;
 import java.nio.file.Path;
 import java.nio.file.Files;
 
+
 public class FastfetchMC implements ModInitializer {
 	public static final String MOD_ID = "fastfetch-mc";
-
-	// This logger is used to write text to the console and the log file.
-	// It is considered best practice to use your mod id as the logger's name.
-	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	@Override
 	public void onInitialize() {
-		// This code runs as soon as Minecraft is in a mod-load-ready state.
-		// However, some things (like resources) may still be uninitialized.
-		// Proceed with mild caution.
-		
+		// Gets the path for the config file.
+		Path configPath = net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("fastfetch-config.jsonc");
+		// If it doesn't exist, I'll make it exist...
+		if (Files.notExists(configPath)) {
+			generateConfigFile(configPath);
+		}
+		//
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(CommandManager.literal("fastfetch").executes(context -> {
-				Path configPath = net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("fastfetch-config.jsonc");
-				if (Files.notExists(configPath)) {
-					generateConfigFile(configPath);
-				}
 				LOGGER.info("Path: {}", configPath.toString());
 				String[] command = {"fastfetch", "-c", configPath.toString()};
 				String message = executeShellCommand(command);
@@ -45,7 +41,7 @@ public class FastfetchMC implements ModInitializer {
 				return 1;
 			}));
 		});
-
+		// The mod loaded, I was not scared it would crash...
 		LOGGER.info("Loaded fastfetchmc");
 	}
 
@@ -65,15 +61,42 @@ public class FastfetchMC implements ModInitializer {
     }
 
 	public static void generateConfigFile(Path configPath) {
-
+		// Will create the config and write the default config.
 		try {
 			FileWriter writer = new FileWriter(configPath.toString());
-			writer.write("Hello World");
+			writer.write(createJsonString());
 			writer.close();
 			LOGGER.info("Successfully created fastfetch config file at: {}", configPath.toString());
 		  } 
+		  // Logs the error so I can find it or something idk
 		  catch (IOException e) {
 			LOGGER.error("Error creating fastfetch config. {}", e.getMessage());
 		  }
+	}
+
+	public static String createJsonString() {
+		// Please help, there has to be a better way of doing this. But I am too tired right now to care. It works though :3
+		String config = new StringBuilder()
+		.append("{\n")
+		.append("    \"$schema\": \"https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json\",\n")
+		.append("    \"logo\": {\n")
+		.append("        \"type\": \"none\"\n")
+		.append("    },\n")
+		.append("    \"modules\": [\n")
+		.append("        \"title\",\n")
+		.append("        \"os\",\n")
+		.append("        \"kernel\",\n")
+		.append("        \"uptime\",\n")
+		.append("        \"cpu\",\n")
+		.append("        \"gpu\",\n")
+		.append("        {\n")
+		.append("            \"type\": \"memory\",\n")
+		.append("            \"key\": \"RAM\"\n")
+		.append("        }\n")
+		.append("    ]\n")
+		.append("}")
+		.toString();
+
+		return config;
 	}
 }
